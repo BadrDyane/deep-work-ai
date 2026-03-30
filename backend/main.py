@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import engine, Base
 from routes import auth as auth_router
+from routes import sessions as sessions_router
 
 
 @asynccontextmanager
@@ -23,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router.router)
+app.include_router(sessions_router.router)
 
 
 @app.get("/health")
