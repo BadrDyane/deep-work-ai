@@ -50,3 +50,34 @@ class SessionResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+# --- Insights (AI Chat) ---
+
+class ChatMessage(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+class InsightRequest(BaseModel):
+    message: str
+    history: Optional[List[ChatMessage]] = []
+
+class InsightResponse(BaseModel):
+    reply: str
+
+
+# --- Weekly Reports ---
+
+class WeeklyReportResponse(BaseModel):
+    id: int
+    week_start: datetime
+    week_end: datetime
+    accomplishments: Optional[str]
+    time_leaks: Optional[str]
+    recommendations: Optional[str]
+    raw_brief: Optional[str]
+    total_sessions: int
+    total_minutes: int
+    avg_productivity_score: float
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

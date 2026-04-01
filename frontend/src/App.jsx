@@ -4,6 +4,8 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Sessions from './pages/Sessions'
+import Insights from './pages/Insights'
+import Reports from './pages/Reports'
 
 function Sidebar() {
   const { logout, user } = useAuth()
@@ -12,6 +14,8 @@ function Sidebar() {
   const navItems = [
     { path: '/dashboard', label: '📊 Dashboard' },
     { path: '/sessions', label: '📝 Sessions' },
+    { path: '/insights', label: '🤖 Assistant' },
+    { path: '/reports', label: '📋 Weekly Brief' },
   ]
 
   return (
@@ -60,16 +64,10 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <AppLayout><Dashboard /></AppLayout>
-        </ProtectedRoute>
-      } />
-      <Route path="/sessions" element={
-        <ProtectedRoute>
-          <AppLayout><Sessions /></AppLayout>
-        </ProtectedRoute>
-      } />
+      <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+      <Route path="/sessions" element={<ProtectedRoute><AppLayout><Sessions /></AppLayout></ProtectedRoute>} />
+      <Route path="/insights" element={<ProtectedRoute><AppLayout><Insights /></AppLayout></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><AppLayout><Reports /></AppLayout></ProtectedRoute>} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   )
