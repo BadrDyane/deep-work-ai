@@ -117,7 +117,7 @@ function BriefSection({ icon, title, content, color }) {
       </div>
       <div style={styles.sectionContent}>
         {content ? (
-          <p style={styles.sectionText}>{content}</p>
+          <div style={styles.sectionText} className="markdown-body">{content}</div>
         ) : (
           <p style={styles.muted}>No data available.</p>
         )}

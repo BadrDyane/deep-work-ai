@@ -6,6 +6,7 @@ from models import User, Session as SessionModel
 from schemas import InsightRequest, InsightResponse
 from auth import get_current_user
 from services.ai_chat import chat_with_assistant
+from services.gating import require_pro
 
 router = APIRouter(prefix="/insights", tags=["insights"])
 
@@ -28,7 +29,8 @@ async def chat(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    # Fetch user's sessions for context
+    require_pro(current_user, "AI Productivity Assistant")
+
     result = await db.execute(
         select(SessionModel)
         .where(SessionModel.user_id == current_user.id)

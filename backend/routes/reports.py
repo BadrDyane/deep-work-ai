@@ -7,6 +7,7 @@ from models import User, Session as SessionModel, WeeklyReport
 from schemas import WeeklyReportResponse
 from auth import get_current_user
 from services.ai_reports import generate_weekly_brief
+from services.gating import require_pro
 from typing import List
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -17,10 +18,11 @@ async def generate_report(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
+    require_pro(current_user, "Weekly Brief")
+
     week_end = datetime.now(timezone.utc)
     week_start = week_end - timedelta(days=7)
 
-    # Check if a report already exists for this week
     existing = await db.execute(
         select(WeeklyReport)
         .where(WeeklyReport.user_id == current_user.id)
@@ -31,7 +33,6 @@ async def generate_report(
     if cached:
         return cached
 
-    # Fetch this week's sessions
     result = await db.execute(
         select(SessionModel)
         .where(SessionModel.user_id == current_user.id)

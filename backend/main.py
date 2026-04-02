@@ -7,6 +7,8 @@ from routes import sessions as sessions_router
 from routes import analytics as analytics_router
 from routes import insights as insights_router
 from routes import reports as reports_router
+from routes import billing as billing_router
+from routes import onboarding as onboarding_router
 
 
 @asynccontextmanager
@@ -31,6 +33,8 @@ app.include_router(sessions_router.router)
 app.include_router(analytics_router.router)
 app.include_router(insights_router.router)
 app.include_router(reports_router.router)
+app.include_router(billing_router.router)
+app.include_router(onboarding_router.router)
 
 
 @app.get("/health")

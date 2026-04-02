@@ -81,3 +81,22 @@ class WeeklyReportResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+# --- Billing ---
+
+class BillingStatus(BaseModel):
+    plan: str
+    is_pro: bool
+
+class UpgradeRequest(BaseModel):
+    plan: str  # "pro" or "free"
+
+
+# --- Onboarding ---
+
+class OnboardingData(BaseModel):
+    work_type: str
+    daily_focus_goal: float
+    improve_focus: bool = False
+    improve_consistency: bool = False
+    improve_energy: bool = False

@@ -1,8 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { getStarterPrompts, sendMessage } from '../api/insights'
+import ReactMarkdown from 'react-markdown'
 
 export default function Insights() {
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('chat_history')
+    return saved ? JSON.parse(saved) : []
+  })
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [starters, setStarters] = useState([])
@@ -16,6 +20,10 @@ export default function Insights() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  useEffect(() => {
+    localStorage.setItem('chat_history', JSON.stringify(messages))
   }, [messages])
 
   const handleSend = async (text) => {
@@ -32,11 +40,19 @@ export default function Insights() {
       const history = updatedMessages.slice(-6)
       const res = await sendMessage(messageText, history)
       setMessages([...updatedMessages, { role: 'assistant', content: res.data.reply }])
-    } catch {
-      setMessages([...updatedMessages, {
-        role: 'assistant',
-        content: 'Something went wrong. Please try again.'
-      }])
+    } catch (err) {
+      const detail = err.response?.data?.detail
+      if (detail?.error === 'pro_required') {
+        setMessages([...updatedMessages, {
+          role: 'assistant',
+          content: '🔒 The AI Productivity Assistant is a Pro feature. Go to Settings and upgrade your plan to unlock it.'
+        }])
+      } else {
+        setMessages([...updatedMessages, {
+          role: 'assistant',
+          content: 'Something went wrong. Please try again.'
+        }])
+      }
     } finally {
       setLoading(false)
     }
@@ -51,14 +67,26 @@ export default function Insights() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.header}>
-        <h2 style={styles.title}>Personal Productivity Assistant</h2>
-        <p style={styles.subtitle}>
-          Ask me anything about your productivity patterns. I have access to all your session data.
-        </p>
+      <div style={{ ...styles.header, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h2 style={styles.title}>Personal Productivity Assistant</h2>
+          <p style={styles.subtitle}>
+            Ask me anything about your productivity patterns. I have access to all your session data.
+          </p>
+        </div>
+        {messages.length > 0 && (
+          <button
+            style={styles.clearBtn}
+            onClick={() => {
+              setMessages([])
+              localStorage.removeItem('chat_history')
+            }}
+          >
+            Clear conversation
+          </button>
+        )}
       </div>
 
-      {/* Starter prompts — only show when no conversation yet */}
       {messages.length === 0 && (
         <div style={styles.startersSection}>
           <p style={styles.startersLabel}>Suggested questions</p>
@@ -76,7 +104,6 @@ export default function Insights() {
         </div>
       )}
 
-      {/* Chat messages */}
       <div style={styles.chatWindow}>
         {messages.length === 0 && (
           <div style={styles.emptyChat}>
@@ -98,7 +125,9 @@ export default function Insights() {
             {msg.role === 'assistant' && (
               <p style={styles.assistantLabel}>🤖 Assistant</p>
             )}
-            <p style={styles.messageText}>{msg.content}</p>
+            <div style={styles.messageText} className="markdown-body">
+              <ReactMarkdown>{msg.content}</ReactMarkdown>
+            </div>
           </div>
         ))}
 
@@ -112,7 +141,6 @@ export default function Insights() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <div style={styles.inputRow}>
         <textarea
           style={styles.input}
@@ -141,15 +169,16 @@ const styles = {
   header: { marginBottom: '24px' },
   title: { color: '#fff', fontSize: '20px', fontWeight: '700', margin: '0 0 8px 0' },
   subtitle: { color: '#888', fontSize: '14px', margin: 0 },
+  clearBtn: { background: 'none', border: '1px solid #2a2a3a', color: '#666', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', whiteSpace: 'nowrap' },
   startersSection: { marginBottom: '24px' },
   startersLabel: { color: '#666', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' },
   starters: { display: 'flex', flexDirection: 'column', gap: '8px' },
-  starterBtn: { background: '#1a1a24', border: '1px solid #2a2a3a', color: '#aaa', padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '14px', transition: 'border-color 0.2s' },
+  starterBtn: { background: '#1a1a24', border: '1px solid #2a2a3a', color: '#aaa', padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '14px' },
   chatWindow: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px', padding: '4px 0' },
   emptyChat: { textAlign: 'center', color: '#555', fontSize: '14px', margin: 'auto' },
-  message: { padding: '14px 16px', borderRadius: '12px', maxWidth: '85%' },
+  message: { padding: '14px 16px', borderRadius: '12px' },
   assistantLabel: { color: '#6c63ff', fontSize: '11px', fontWeight: '600', margin: '0 0 6px 0', textTransform: 'uppercase', letterSpacing: '0.5px' },
-  messageText: { color: '#e0e0e0', fontSize: '14px', lineHeight: '1.6', margin: 0, whiteSpace: 'pre-wrap' },
+  messageText: { color: '#e0e0e0', fontSize: '14px', lineHeight: '1.6', margin: 0 },
   inputRow: { display: 'flex', gap: '12px', alignItems: 'flex-end' },
   input: { flex: 1, background: '#1a1a24', border: '1px solid #2a2a3a', borderRadius: '8px', color: '#fff', fontSize: '14px', padding: '12px 14px', resize: 'none', outline: 'none', fontFamily: 'inherit' },
   sendBtn: { padding: '12px 24px', background: '#6c63ff', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '14px', whiteSpace: 'nowrap' },
